@@ -6,7 +6,7 @@ import argparse
 import codecs
 import configparser
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageColor
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-c', '--config', help="Config file location (default: config.ini)", dest="config",
@@ -16,18 +16,23 @@ args = parser.parse_args()
 
 config = configparser.ConfigParser()
 config.read(args.config, "utf-8")
+config_game = config[args.game]
 
 # get an image
-cover = Image.open(config[args.game]['cover']).convert('RGBA')
+conver_name = config_game.get('cover_alt', None) or config_game.get('cover')
+cover = Image.open(conver_name).convert('RGBA')
 
 
 # cover = Image.open('Seasons.jpg').convert('RGBA')
 
-def draw_text(d_, text, font, x_, y_):
-    d_.text((x_, y_), text, font=font, fill=(255, 165, 12, 255))
 
+def get_xy(cover_size, text_size):
+    xoff = int(config_game.get("off_x", '-20'))
+    yoff = int(config_game.get("off_y", "-20"))
 
-def get_xy(xpos, ypos, xoff, yoff, cover_size, text_size):
+    xpos = config_game.get("pos_x", "right")
+    ypos = config_game.get("pos_y", "bottom")
+
     x_ = 0
     y_ = 0
     if xpos == "left":
@@ -39,9 +44,9 @@ def get_xy(xpos, ypos, xoff, yoff, cover_size, text_size):
     else:
         raise RuntimeError("Invalid pos_x value {0}".format(xpos))
 
-    if ypos == "left":
+    if ypos == "top":
         y_ += yoff
-    elif ypos == "right":
+    elif ypos == "bottom":
         y_ = cover_size[1] - text_size[1] + yoff
     elif ypos == "center":
         y_ = (cover_size[1] - text_size[1]) / 2 + yoff
@@ -51,26 +56,28 @@ def get_xy(xpos, ypos, xoff, yoff, cover_size, text_size):
     return x_, y_
 
 
+def draw_text(d_):
+    text = "#{0}".format(config_game['count_yt'])
+    x_, y_ = get_xy(cover.size, d.textsize(text, font=fnt))
+    color = ImageColor.getrgb(config_game.get('font_color', '#000000'))
+
+    d_.text((x_, y_), text, font=fnt, fill=color)
+
+
 txt = Image.new('RGBA', cover.size, (255, 255, 255, 0))
 # get a font
-fnt = [ImageFont.truetype('Purisa.ttf', 240), ImageFont.truetype('Purisa.ttf', 60)]
+fnt = ImageFont.truetype('Purisa.ttf', int(config_game.get('font_size', 240)))
 # get a drawing context
 d = ImageDraw.Draw(txt)
 
-Text = "# {0}".format(config[args.game]['count_yt'])
-
-x, y = get_xy(config[args.game].get('pos_x', 'right'), config[args.game].get('pos_y', 'bottom'),
-              int(config[args.game].get('off_x', '-20')), int(config[args.game].get('off_y', '-20')),
-              cover.size, d.textsize(Text, font=fnt[0]))
-
-draw_text(d, Text, fnt[0], x, y)
+draw_text(d)
 
 out = Image.alpha_composite(cover, txt)
 background = Image.new('RGB', cover.size, (0, 0, 0))
 background.paste(out, out.split()[-1])
-background.save(background.save("{0}_{1}.jpg".format(args.game.replace(' ', '_'), config[args.game]['count_yt'])))
+background.save("{0}_{1}.jpg".format(args.game.replace(' ', '_'), config_game['count_yt']))
 
 if config.has_option(args.game, 'count'):
-    config[args.game]['count_yt'] = str(int(config[args.game]['count_yt']) + 1)
+    config_game['count_yt'] = str(int(config_game['count_yt']) + 1)
     with codecs.open(args.config, 'w', 'utf-8') as f:
         config.write(f)
