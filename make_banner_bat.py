@@ -27,28 +27,28 @@ def draw_text(d_, text, font, x_, y_):
     d_.text((x_, y_), text, font=font, fill=(255, 165, 12, 255))
 
 
-def get_xy(xpos_, ypos_, xoff_, yoff_, cover_size, text_size):
-    x = 0
-    y = 0
-    if xpos_ == "left":
-        x += xoff_
-    elif xpos_ == "right":
-        x = cover_size[0] - text_size[0] + xoff_
-    elif xpos_ == "center":
-        x = (cover_size[0] - text_size[0]) / 2 + xoff_
+def get_xy(xpos, ypos, xoff, yoff, cover_size, text_size):
+    x_ = 0
+    y_ = 0
+    if xpos == "left":
+        x_ += xoff
+    elif xpos == "right":
+        x_ = cover_size[0] - text_size[0] + xoff
+    elif xpos == "center":
+        x_ = (cover_size[0] - text_size[0]) / 2 + xoff
     else:
-        raise RuntimeError("Invalid pos_x value {0}".format(xpos_))
+        raise RuntimeError("Invalid pos_x value {0}".format(xpos))
 
-    if ypos_ == "left":
-        y += yoff_
-    elif ypos_ == "right":
-        y = cover_size[1] - text_size[1] + yoff_
-    elif ypos_ == "center":
-        y = (cover_size[1] - text_size[1]) / 2 + yoff_
+    if ypos == "left":
+        y_ += yoff
+    elif ypos == "right":
+        y_ = cover_size[1] - text_size[1] + yoff
+    elif ypos == "center":
+        y_ = (cover_size[1] - text_size[1]) / 2 + yoff
     else:
-        raise RuntimeError("Invalid pos_y value {0}".format(ypos_))
+        raise RuntimeError("Invalid pos_y value {0}".format(ypos))
 
-    return x, y
+    return x_, y_
 
 
 txt = Image.new('RGBA', cover.size, (255, 255, 255, 0))
@@ -60,7 +60,7 @@ d = ImageDraw.Draw(txt)
 Text = "# {0}".format(config[args.game]['count_yt'])
 
 x, y = get_xy(config[args.game].get('pos_x', 'right'), config[args.game].get('pos_y', 'bottom'),
-              config[args.game].get('off_x', '-20'), config[args.game].get('off_y', '-20'),
+              int(config[args.game].get('off_x', '-20')), int(config[args.game].get('off_y', '-20')),
               cover.size, d.textsize(Text, font=fnt[0]))
 
 draw_text(d, Text, fnt[0], x, y)
