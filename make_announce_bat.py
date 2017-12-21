@@ -64,10 +64,11 @@ d = ImageDraw.Draw(txt)
 draw_text(d, config[args.game]['line1'].format(**config[args.game]), fnt[0], 350)
 draw_text(d, config[args.game]['line2'].format(**config[args.game]), fnt[1], 550)
 
-if config.has_option(args.game, 'count'):
-    config[args.game]['count'] = str(int(config[args.game]['count']) + 1)
-    with codecs.open(args.config, 'w', 'utf-8') as f:
-        config.write(f)
+game_count = int(config[args.game].get('count', '1'))
+config[args.game]['count'] = str(game_count + 1)
+
+with codecs.open(args.config, 'w', 'utf-8') as f:
+    config.write(f)
 
 stream_date = datetime.datetime.strptime(args.date, "%d-%m")
 
@@ -80,7 +81,6 @@ out = Image.alpha_composite(banner, txt)
 # out.show()
 background = Image.new('RGB', out.size, (0, 0, 0))
 background.paste(out, out.split()[-1])
-background.save("{0}_{1}{2}{3}.jpg".format(args.game.replace(' ', '_'), datetime.datetime.now().year, stream_date.month,
-                                           stream_date.day))
+background.save("{0}_{1}_{2}{3}.jpg".format(args.game.replace(' ', '_'), game_count, stream_date.month, stream_date.day))
 
 print("Done")

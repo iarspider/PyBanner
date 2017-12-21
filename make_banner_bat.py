@@ -57,7 +57,7 @@ def get_xy(cover_size, text_size):
 
 
 def draw_text(d_):
-    text = "#{0}".format(config_game['count_yt'])
+    text = "#{0}".format(config_game.get('count_yt', 1))
     x_, y_ = get_xy(cover.size, d.textsize(text, font=fnt))
     color = ImageColor.getrgb(config_game.get('font_color', '#000000'))
 
@@ -77,7 +77,6 @@ background = Image.new('RGB', cover.size, (0, 0, 0))
 background.paste(out, out.split()[-1])
 background.save("{0}_{1}.jpg".format(args.game.replace(' ', '_'), config_game['count_yt']))
 
-if config.has_option(args.game, 'count'):
-    config_game['count_yt'] = str(int(config_game['count_yt']) + 1)
-    with codecs.open(args.config, 'w', 'utf-8') as f:
-        config.write(f)
+config_game['count_yt'] = str(int(config_game.get('count_yt', 1) + 1))
+with codecs.open(args.config, 'w', 'utf-8') as f:
+    config.write(f)
