@@ -45,10 +45,10 @@ banner = Image.open(config[args.game]['banner']).convert('RGBA')
 
 def draw_text(d_, text, font, y):
     global label_max_width
-    width = d.textsize(text, font=font)[0]
+    width, height = d.textsize(text, font=font)
     x = (label_max_width - width) / 2 + 562
     d_.text((x, y), text, font=font, fill=(255, 255, 255, 255))
-
+    return height
 
 left_margin = 562
 right_margin = cover.size[0] + 105
@@ -57,12 +57,19 @@ label_max_width = banner.size[0] - left_margin - right_margin
 txt = Image.new('RGBA', banner.size, (255, 255, 255, 0))
 txt.paste(cover, ((banner.size[0] - cover.size[0]) - 95, round((banner.size[1] - cover.size[1]) / 2)))
 # get a font
-fnt = [ImageFont.truetype(purisa, 120), ImageFont.truetype(purisa, 60)]
+fnt = [ImageFont.truetype(purisa, int(config[args.game].get('font', 60))*2), ImageFont.truetype(purisa, config[args.game].get('font1', 60))]
 # get a drawing context
 d = ImageDraw.Draw(txt)
 
-draw_text(d, config[args.game]['line1'].format(**config[args.game]), fnt[0], 350)
-draw_text(d, config[args.game]['line2'].format(**config[args.game]), fnt[1], 550)
+line_cnt = config[args.game]['linec']
+y = int(config[args.game].get('start_y', 350))
+for i in range(1, int(line_cnt)+1):
+    h = draw_text(d, config[args.game]['line{0}'.format(i)].format(**config[args.game]), fnt[0], y)
+    y += h + int(config[args.game].get('pad_y', 10))
+
+y += int(config[args.game].get('date_pad', 0))
+#draw_text(d, config[args.game]['line1'].format(**config[args.game]), fnt[0], 350)
+#draw_text(d, config[args.game]['line2'].format(**config[args.game]), fnt[0], 550)
 
 game_count = int(config[args.game].get('count', '1'))
 config[args.game]['count'] = str(game_count + 1)
@@ -75,7 +82,7 @@ stream_date = datetime.datetime.strptime(args.date, "%d-%m")
 month_name = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября",
               "декабря"][stream_date.month - 1]
 
-draw_text(d, u"{0} {1} в {2}".format(stream_date.day, month_name, args.time), fnt[1], 650)
+draw_text(d, u"{0} {1} в {2}".format(stream_date.day, month_name, args.time), fnt[1], y)
 
 out = Image.alpha_composite(banner, txt)
 # out.show()
@@ -83,4 +90,4 @@ background = Image.new('RGB', out.size, (0, 0, 0))
 background.paste(out, out.split()[-1])
 background.save("{0}_{1}_{2}{3}.jpg".format(args.game.replace(' ', '_'), game_count, stream_date.month, stream_date.day))
 
-print("Done")
+print("Announcement saved to {0}_{1}_{2}{3}.jpg".format(args.game.replace(' ', '_'), game_count, stream_date.month, stream_date.day))
