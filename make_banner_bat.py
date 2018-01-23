@@ -11,6 +11,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageColor
 parser = argparse.ArgumentParser()
 parser.add_argument('-c', '--config', help="Config file location (default: config.ini)", dest="config",
                     default="config.ini")
+parser.add_argument('-n', '--no-advance', help="Don't advance counter (useful for initial tuning)", dest="advance", action="store_false")
 parser.add_argument("game", help="Game")
 args = parser.parse_args()
 
@@ -75,8 +76,10 @@ draw_text(d)
 out = Image.alpha_composite(cover, txt)
 background = Image.new('RGB', cover.size, (0, 0, 0))
 background.paste(out, out.split()[-1])
-background.save("{0}_{1}.jpg".format(args.game.replace(' ', '_'), config_game['count_yt']))
+background.save("{0}_{1}.jpg".format(args.game.replace(' ', '_'), config_game.get('count_yt', 1)))
 
-config_game['count_yt'] = str(int(config_game.get('count_yt', 1) + 1))
+if args.advance:
+    config_game['count_yt'] = str(int(config_game.get('count_yt', 1)) + 1)
+
 with codecs.open(args.config, 'w', 'utf-8') as f:
     config.write(f)
