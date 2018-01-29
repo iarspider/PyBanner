@@ -8,7 +8,7 @@ import configparser
 import datetime
 import os
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageColor
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-c', '--config', help="Config file location (default: config.ini)", dest="config",
@@ -16,8 +16,7 @@ parser.add_argument('-c', '--config', help="Config file location (default: confi
 parser.add_argument('-d', '--date', help="Stream date, default today, format DD-MM", dest="date",
                     default=datetime.datetime.now().strftime("%d-%m"))
 parser.add_argument('-t', '--time', help="Stream time, default 20:00", dest="time", default="20:00")
-parser.add_argument('-n', '--no-advance', help="Don't advance counter (useful for initial tuning)", dest="advance",
-                    action="store_false")
+parser.add_argument('-n', '--no-advance', help="Don't advance counter (useful for initial tuning)", dest="advance", action="store_false")
 parser.add_argument("game", help="Game")
 args = parser.parse_args()
 
@@ -38,31 +37,29 @@ if not config.has_section(args.game):
     exit(0)
 
 # get an image
-# cover = Image.open('Skyrim.jpg').convert('RGBA')
-# cover = Image.open('Infra.jpg').convert('RGBA')
-bg_image = Image.open(config[args.game]['background']).convert('RGBA')
-game_image = Image.open(config[args.game]['game']).convert('RGBA')
+game = Image.open(config[args.game]['game']).convert('RGBA')
+background = Image.open(config[args.game]['background']).convert('RGBA')
 
 
 def draw_text(d_, text, font, yy, xx=757, color=(255, 255, 255, 255)):
-    print('at', xx, yy, 'with color', color, 'text', text)
-    w, h = d_.textsize(text, font=font)
+    global label_max_width
+    width, height = d_.textsize(text, font=font)
     d_.text((xx, yy), text, font=font, fill=color)
-    return w, h
+    return width, height
 
-
-canvas = Image.new('RGBA', bg_image.size, (255, 255, 255, 0))
-canvas.paste(game_image, ((bg_image.size[0] - game_image.size[0]) - 15, 300))
+canvas = Image.new('RGBA', background.size, (255, 255, 255, 0))
+canvas.paste(game, ((background.size[0] - game.size[0]) - 15, 300))
 # get a font
 fnt = [ImageFont.truetype(purisa, 77), ImageFont.truetype(purisa, 44)]
+
 # get a drawing context
 d = ImageDraw.Draw(canvas)
 
 line_cnt = config[args.game].get('linec', 2)
 y = int(config[args.game].get('start_y', 540))
-for i in range(1, int(line_cnt) + 1):
-    line_h = draw_text(d, config[args.game]['line{0}'.format(i)].format(**config[args.game]), fnt[0], y)[1]
-    y += line_h + int(config[args.game].get('pad_y', 10))
+for i in range(1, int(line_cnt)+1):
+    h = draw_text(d, config[args.game]['line{0}'.format(i)].format(**config[args.game]), fnt[0], yy=y)[1]
+    y += h + int(config[args.game].get('pad_y', 10))
 
 game_count = int(config[args.game].get('count', '1'))
 
@@ -77,17 +74,15 @@ stream_date = datetime.datetime.strptime(args.date, "%d-%m")
 month_name = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября",
               "декабря"][stream_date.month - 1]
 
-width = draw_text(d, u"{0} {1} ".format(stream_date.day, month_name), fnt[1], 1000, 1000, (0, 0, 0, 255))[0]
-print(args.time, width, 1000 + width, canvas.size[0])
-draw_text(d, args.time, fnt[1], 1000 + width, 1000, (242, 54, 55, 0))
+width, height = draw_text(d, u"{0} {1} ".format(stream_date.day, month_name), fnt[1], xx=1000, yy=1000, color=(0, 0, 0, 255))
+print (width, 1000+width, game.size[0])
+draw_text(d, args.time, fnt[1], xx=1000+width, yy=1000, color=(242, 54, 55, 255))
+#draw_text(d, args.time, fnt[1], xx=0, yy=0, color=(242, 54, 55, 255))
 
-# out = Image.alpha_composite(bg_image, canvas)
-out = canvas
+temp = Image.alpha_composite(background, canvas)
 # out.show()
-output = Image.new('RGB', out.size, (0, 0, 0))
-output.paste(out, out.split()[-1])
-output.save(
-    "{0}_{1}_{2}-{3}.jpg".format(args.game.replace(' ', '_'), game_count, stream_date.month, stream_date.day))
+out = Image.new('RGB', temp.size, (0, 0, 0))
+out.paste(temp, temp.split()[-1])
+out.save("{0}_{1}_{2}{3}.jpg".format(args.game.replace(' ', '_'), game_count, stream_date.month, stream_date.day))
 
-print("Announcement saved to {0}_{1}_{2}-{3}.jpg".format(args.game.replace(' ', '_'), game_count, stream_date.month,
-                                                         stream_date.day))
+print("Announcement saved to {0}_{1}_{2}-{3}.jpg".format(args.game.replace(' ', '_'), game_count, stream_date.month, stream_date.day))
