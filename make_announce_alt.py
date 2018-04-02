@@ -48,9 +48,9 @@ def draw_text(d_, text, font, yy, xx=757, color=(255, 255, 255, 255)):
     return width, height
 
 canvas = Image.new('RGBA', background.size, (255, 255, 255, 0))
-canvas.paste(game, ((background.size[0] - game.size[0]) - 15, 300))
+canvas.paste(game, ((background.size[0] - game.size[0]) - 15, int(config[args.game].get("image_y", "300"))))
 # get a font
-fnt = [ImageFont.truetype(purisa, 77), ImageFont.truetype(purisa, 44)]
+fnt = [ImageFont.truetype(purisa, 60), ImageFont.truetype(purisa, 40)]
 
 # get a drawing context
 d = ImageDraw.Draw(canvas)
@@ -74,15 +74,15 @@ stream_date = datetime.datetime.strptime(args.date, "%d-%m")
 month_name = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября",
               "декабря"][stream_date.month - 1]
 
-width, height = draw_text(d, u"{0} {1} ".format(stream_date.day, month_name), fnt[1], xx=1000, yy=1000, color=(0, 0, 0, 255))
-print (width, 1000+width, game.size[0])
-draw_text(d, args.time, fnt[1], xx=1000+width, yy=1000, color=(242, 54, 55, 255))
+width, height = draw_text(d, u"{0} {1} ".format(stream_date.day, month_name), fnt[0], xx=1000, yy=1000, color=(0, 0, 0, 255))
+# print (width, 1000+width, game.size[0])
+draw_text(d, args.time, fnt[0], xx=1000+width, yy=1000, color=(242, 54, 55, 255))
 #draw_text(d, args.time, fnt[1], xx=0, yy=0, color=(242, 54, 55, 255))
 
 temp = Image.alpha_composite(background, canvas)
 # out.show()
 out = Image.new('RGB', temp.size, (0, 0, 0))
 out.paste(temp, temp.split()[-1])
-out.save("{0}_{1}_{2}{3}.jpg".format(args.game.replace(' ', '_'), game_count, stream_date.month, stream_date.day))
+out.save("{0}_{1}_{2:02d}{3:02d}.jpg".format(args.game.replace(' ', '_'), game_count, stream_date.month, stream_date.day))
 
-print("Announcement saved to {0}_{1}_{2}-{3}.jpg".format(args.game.replace(' ', '_'), game_count, stream_date.month, stream_date.day))
+print("Announcement saved to {0}_{1}_{2:02d}{3:02d}.jpg".format(args.game.replace(' ', '_'), game_count, stream_date.month, stream_date.day))

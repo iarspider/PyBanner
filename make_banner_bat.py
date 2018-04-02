@@ -37,22 +37,29 @@ def get_xy(cover_size, text_size):
     x_ = 0
     y_ = 0
     if xpos == "left":
-        x_ += xoff
+        x_ = 0
+        # x_ += xoff
     elif xpos == "right":
-        x_ = cover_size[0] - text_size[0] + xoff
+        # x_ = 0
+        x_ = cover_size[0] - text_size[0]
     elif xpos == "center":
-        x_ = (cover_size[0] - text_size[0]) / 2 + xoff
+        # x_ = 0
+        x_ = (cover_size[0] - text_size[0]) / 2
     else:
         raise RuntimeError("Invalid pos_x value {0}".format(xpos))
 
+    x_ += xoff
+
     if ypos == "top":
-        y_ += yoff
+        y_ = 0
     elif ypos == "bottom":
-        y_ = cover_size[1] - text_size[1] + yoff
+        y_ = cover_size[1] - text_size[1]
     elif ypos == "center":
-        y_ = (cover_size[1] - text_size[1]) / 2 + yoff
+        y_ = (cover_size[1] - text_size[1]) / 2
     else:
         raise RuntimeError("Invalid pos_y value {0}".format(ypos))
+
+    y_ += yoff
 
     return x_, y_
 
@@ -60,6 +67,7 @@ def get_xy(cover_size, text_size):
 def draw_text(d_):
     text = "#{0}".format(config_game.get('count_yt', 1))
     x_, y_ = get_xy(cover.size, d.textsize(text, font=fnt))
+    print (x_, y_)
     color = ImageColor.getrgb(config_game.get('font_color', '#000000'))
 
     d_.text((x_, y_), text, font=fnt, fill=color)
@@ -67,7 +75,8 @@ def draw_text(d_):
 
 txt = Image.new('RGBA', cover.size, (255, 255, 255, 0))
 # get a font
-fnt = ImageFont.truetype('Purisa.ttf', int(config_game.get('font_size', 240)))
+# fnt = ImageFont.truetype('Purisa.ttf', int(config_game.get('font_size', 240)))
+fnt = ImageFont.truetype('docker_one.ttf', int(config_game.get('font_size', 177)))
 # get a drawing context
 d = ImageDraw.Draw(txt)
 
